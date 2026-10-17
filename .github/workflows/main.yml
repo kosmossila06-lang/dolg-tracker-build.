@@ -26,12 +26,23 @@ jobs:
         with:
           gradle-version: '8.9'
 
+      - name: Unpack Android project
+        run: |
+          test -f DolgTrackerAndroid_v2(1).zip
+          mkdir android-source
+          unzip -q DolgTrackerAndroid_v2(1).zip -d android-source
+          PROJECT_DIR=$(dirname "$(find android-source -type f \( -name settings.gradle.kts -o -name settings.gradle \) | head -n 1)")
+          test -n "$PROJECT_DIR"
+          echo "PROJECT_DIR=$PROJECT_DIR" >> "$GITHUB_ENV"
+
       - name: Build APK
-        run: gradle assembleDebug
+        run: gradle --no-daemon assembleDebug
+        working-directory: ${{ env.PROJECT_DIR }}
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: DebtTracker-debug-apk
-          path: app/build/outputs/apk/debug/*.apk
+          path: ${{ env.PROJECT_DIR }}/app/build/outputs/apk/debug/*.apk
+          if-no-files-found: error
           
