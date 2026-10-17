@@ -26,17 +26,16 @@ jobs:
         with:
           gradle-version: '8.9'
 
-            - name: Unpack Android project
+      - name: Unpack Android project
+        shell: bash
         run: |
           ZIP_FILE="DolgTrackerAndroid_v2(1).zip"
-          test -f "$ZIP_FILE"
+          test -f "$ZIP_FILE" || { echo "ZIP archive not found: $ZIP_FILE"; exit 1; }
           mkdir -p android-source
           unzip -q "$ZIP_FILE" -d android-source
-          PROJECT_DIR=$(dirname "$(find android-source -type f \( -name settings.gradle.kts -o -name settings.gradle \) -print -quit)")
-          test -n "$PROJECT_DIR"
-          echo "PROJECT_DIR=$PROJECT_DIR" >> "$GITHUB_ENV"
-          PROJECT_DIR=$(dirname "$(find android-source -type f \( -name settings.gradle.kts -o -name settings.gradle \) | head -n 1)")
-          test -n "$PROJECT_DIR"
+          SETTINGS_FILE=$(find android-source -type f \( -name settings.gradle.kts -o -name settings.gradle \) -print -quit)
+          test -n "$SETTINGS_FILE" || { echo "Gradle settings file not found in ZIP"; exit 1; }
+          PROJECT_DIR=$(dirname "$SETTINGS_FILE")
           echo "PROJECT_DIR=$PROJECT_DIR" >> "$GITHUB_ENV"
 
       - name: Build APK
